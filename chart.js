@@ -1,4 +1,3 @@
-<script>
 (function(){
   // ---------- Daten (CSV: PE NXT Monatsperformance, Share Class E, Stand Mai 2026) ----------
   var months = ["Jun 24","Jul 24","Aug 24","Sep 24","Okt 24","Nov 24","Dez 24",
@@ -267,4 +266,3 @@
   bindToggle("tgDeals","gDeals");
   bindToggle("tgFunds","gFunds");
 })();
-</script>

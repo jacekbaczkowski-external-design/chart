@@ -29,29 +29,29 @@
      text:"Wir kaufen mit KKR den international tätigen Anbieter von Mess- und Prüftechnik."},
     {i:21, date:"März 2026",    title:"Ryan – erster 1-Mrd.-Deal", label:"Ryan · 1-Mrd.-Deal", logo:"ryan", domain:"ryan.com", ly:-60, side:"below",
      text:"Wir investieren mit Ares in den Milliarden-Deal Ryan, einen der weltweit größten Spezialisten für Unternehmenssteuern."},
-    {i:22, date:"April 2026",   title:"First Exit: Entrust", logo:"entrust", domain:"entrust.com", ly:50, side:"left",
+    {i:22, date:"April 2026",   title:"Erster Exit: Entrust", logo:"entrust", domain:"entrust.com", ly:50, side:"left",
      text:"Erster Exit im Portfolio: Kohlberg verkauft den amerikanischen Datenmanager Entrust."},
     {i:22, date:"April 2026",   title:"Vinted", logo:"vinted", domain:"vinted.com", ly:100, side:"left",
      text:"Growth Investment mit EQT: Vinted ist der größte C2C-Marktplatz für Second-Hand-Mode und -Artikel in Europa."},
-    {i:23, date:"Juli 2026",    title:"First IPO: Bending Spoons", logo:"bendingspoons", domain:"bendingspoons.com", ly:-60, side:"left", outlook:true,
+    {i:23, date:"Juli 2026",    title:"Erster Börsengang: Bending Spoons", logo:"bendingspoons", domain:"bendingspoons.com", ly:-60, side:"left", outlook:true,
      text:"Erster Börsengang im Portfolio: Der italienische App-Entwickler hinter Komoot & Co. geht an die NASDAQ."}
   ];
 
   // Funding- & Produkt-Meilensteine – lange vertikale Linien am Chart
   var funds = [
-    {i:0,  date:"Juni 2024",     title:"Start: NXT & 1.000 Kunden", lane:0,
+    {i:0,  date:"Juni 2024",     title:"NXT startet mit 1.000 Kunden", lane:0,
      text:"LIQID Private Equity NXT startet als einer der ersten ELTIFs in der DACH-Region – über 1.000 Kunden sichern sich direkt zum Start den Zugang zu Private Equity ab 10.000 Euro."},
-    {i:3,  date:"September 2024",title:"100 Mio. Volumen", lane:1,
+    {i:3,  date:"September 2024",title:"100\u202FMio.\u202F€ Fondsvolumen", lane:1,
      text:"Das NXT Volumen überschreitet die Marke von 100 Millionen Euro."},
-    {i:4,  date:"Oktober 2024",  title:"Erster positiver NAV", lane:2,
+    {i:5,  date:"November 2024", title:"Erster positiver NAV", lane:2,
      text:"Trotz Aufbauphase und US-Dollar-Schwäche zeigt sich die erste Wertschöpfung in Form des ersten positiven NAVs."},
-    {i:11, date:"Mai 2025",      title:"200 Mio. Volumen", lane:0,
+    {i:11, date:"Mai 2025",      title:"200\u202FMio.\u202F€ Fondsvolumen", lane:0,
      text:"Das NXT Volumen überschreitet die Marke von 200 Millionen Euro."},
     {i:17, date:"November 2025", title:"Scope Award", logo:"scope", lane:1,
      text:"Die Rating-Agentur Scope zeichnet LIQID Private Equity NXT mit dem Scope Innovation Award 2026 aus."},
-    {i:19, date:"Januar 2026",   title:"Cash < 20 %", lane:0,
+    {i:19, date:"Januar 2026",   title:"Aufbauphase abgeschlossen", lane:0,
      text:"Aufbauphase frühzeitig beendet – das Portfolio ist nahezu voll investiert."},
-    {i:23, date:"Mai 2026",      title:"300 Mio. Volumen", lane:2,
+    {i:23, date:"Mai 2026",      title:"300\u202FMio.\u202F€ Fondsvolumen", lane:2,
      text:"Das NXT Volumen überschreitet die Marke von 300 Millionen Euro."}
   ];
 
@@ -96,7 +96,7 @@
   function x(i){return L+(R-L)*i/(months.length-1);}
   function y(v){return T+(B-T)*(yMax-v)/(yMax-yMin);}
   function fmt(v,d){return v.toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d});}
-  function pct(v){return (v>0?"+":"")+fmt(v,2)+" %";}
+  function pct(v){var s=fmt(v,2).replace(/^([+\-\u2212])/,"$1\u202F");return (v>0?"+\u202F":"")+s+"\u202F%";}
 
   var svgNS="http://www.w3.org/2000/svg";
   var svg=document.getElementById("chart");
@@ -115,9 +115,11 @@
   // Editorial: keine Gridlines, keine Y-Achse – nur eine ultra-leichte Nulllinie
   el("line",{x1:L,y1:y(0),x2:R,y2:y(0),stroke:"#c1c1c4","stroke-width":1});
 
-  // X-Labels (quartalsweise + letzter Monat)
+  // X-Labels (quartalsweise + letzter Monat). Monats-Labels in eine oberste Ebene (topLab),
+  // damit die vertikalen Meilenstein-Leader-Linien sie nicht durchschneiden. Halo (Stroke = Bandfarbe) maskiert zusätzlich.
+  var topLab=el("g",{});
   [0,3,6,9,12,15,18,21,23].forEach(function(i){
-    el("text",{x:x(i),y:axisY,"text-anchor":"middle","font-size":"12",fill:"#787878"}).textContent=months[i];
+    el("text",{x:x(i),y:axisY,"text-anchor":"middle","font-size":"12",fill:"#787878","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},topLab).textContent=months[i];
     el("line",{x1:x(i),y1:B,x2:x(i),y2:B+6,stroke:"#c1c1c4","stroke-width":1});
   });
   el("line",{x1:L,y1:B,x2:R,y2:B,stroke:"#c1c1c4","stroke-width":1});
@@ -136,25 +138,31 @@
     requestAnimationFrame(function(){requestAnimationFrame(function(){line.style.strokeDashoffset=0;});});
   }catch(e){}
 
-  // Endwert-Badge
+  // Endpunkt-Dot auf der Linie (Endwert-Badge "+13,69 %" entfernt)
   var ex=x(23),ey=y(cum[23]);
   el("circle",{cx:ex,cy:ey,r:5.5,fill:"#232326",stroke:"#fff","stroke-width":2});
-  var bx=Math.min(ex, IPO_X-78);   // Badge links vom Outlook-Chip halten (kein Überlappen/Überlauf)
-  var badge=el("g",{});
-  el("rect",{x:bx-46,y:ey-46,width:92,height:26,rx:8,fill:"#fff",stroke:"#d6d6d6","stroke-width":1},badge);
-  el("text",{x:bx,y:ey-28,"text-anchor":"middle","font-size":"13","font-weight":"600",fill:"#232326"},badge).textContent="+13,69 %";
 
   var tooltip=document.getElementById("tooltip");
   var wrap=document.getElementById("chartWrap");
   function showTip(html,px,py){
     tooltip.innerHTML=html;tooltip.classList.add("show");
-    var r=wrap.getBoundingClientRect(),scale=r.width/W;
-    var tx=px*scale+14,ty=py*scale-10;
-    tooltip.style.left="0";tooltip.style.top="0";
-    var tw=tooltip.offsetWidth,th=tooltip.offsetHeight;
-    if(tx+tw>r.width-8)tx=px*scale-tw-14;
-    if(ty+th>r.height-4)ty=r.height-th-4;
-    if(ty<0)ty=4;
+    // Tooltip liegt absolut im .chart-wrap und scrollt mit dem Chart-Inhalt mit (Position in Inhaltskoordinaten).
+    // Skalierung nach dem gerenderten SVG (Höhen-Skalierung auf Mobile). Clamping gegen das SICHTBARE
+    // Fenster (Wrapper evtl. horizontal gescrollt) -> Tooltip bleibt neben dem Marker und im Bild.
+    var sr=svg.getBoundingClientRect(),scale=sr.width/W;
+    var mx=px*scale,my=py*scale;
+    tooltip.style.left="0";tooltip.style.top="0";tooltip.style.width="";
+    var tw=tooltip.offsetWidth;
+    tooltip.style.width=tw+"px";   // Breite fixieren: großer left-Offset im Scroll-Container darf sie nicht quetschen
+    var th=tooltip.offsetHeight;
+    var vL=wrap.scrollLeft,vR=vL+wrap.clientWidth,vH=wrap.clientHeight;
+    var tx=mx+14;
+    if(tx+tw>vR-8)tx=mx-tw-14;   // links vom Marker, wenn rechts kein Platz
+    if(tx+tw>vR-8)tx=vR-tw-8;    // im sichtbaren rechten Rand halten
+    if(tx<vL+8)tx=vL+8;          // im sichtbaren linken Rand halten
+    var ty=my-10;
+    if(ty+th>vH-12)ty=vH-th-12;
+    if(ty<8)ty=8;
     tooltip.style.left=tx+"px";tooltip.style.top=ty+"px";
   }
   function hideTip(){tooltip.classList.remove("show");}
@@ -180,7 +188,7 @@
     el("circle",{cx:px,cy:cy,r:11.5},clip);
     el("circle",{cx:px,cy:cy,r:14,fill:"#fff",stroke:"#2f3030","stroke-width":1.5,"class":"core"},g);
     // Monogramm als Fallback, Logo aus dem Web darüber
-    var mono=d.title.replace(/^First (Exit|IPO): /,"").charAt(0);
+    var mono=d.title.replace(/^(First (Exit|IPO)|Erster (Exit|Börsengang)): /,"").charAt(0);
     var monoEl=el("text",{x:px,y:cy+4.5,"text-anchor":"middle","font-size":"13","font-weight":"700",fill:"#2f3030"},g);
     monoEl.textContent=mono;
     // Chip-Logo: EIN statisches <image> mit Inline-data-URI. Kein Runtime-SVG-Parsing, kein getBBox,
@@ -198,13 +206,13 @@
     // Label
     var name=d.label||d.title;
     if(d.side==="below"){
-      el("text",{x:px,y:cy+31,"text-anchor":"middle","font-size":"12.5","font-weight":"600",fill:"#2f3030"},g).textContent=name;
-      el("text",{x:px,y:cy+45,"text-anchor":"middle","font-size":"10.5",fill:"#999999"},g).textContent=d.date;
+      el("text",{x:px,y:cy+31,"text-anchor":"middle","font-size":"12.5","font-weight":"600",fill:"#2f3030","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},g).textContent=name;
+      el("text",{x:px,y:cy+45,"text-anchor":"middle","font-size":"10.5",fill:"#999999","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},g).textContent=d.date;
     }else{
       var ax=d.side==="right"?px+21:px-21;
       var anch=d.side==="right"?"start":"end";
-      el("text",{x:ax,y:cy-1,"text-anchor":anch,"font-size":"12.5","font-weight":"600",fill:"#2f3030"},g).textContent=name;
-      el("text",{x:ax,y:cy+13,"text-anchor":anch,"font-size":"10.5",fill:"#999999"},g).textContent=d.date+(d.outlook?" · Ausblick":"");
+      el("text",{x:ax,y:cy-1,"text-anchor":anch,"font-size":"12.5","font-weight":"600",fill:"#2f3030","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},g).textContent=name;
+      el("text",{x:ax,y:cy+13,"text-anchor":anch,"font-size":"10.5",fill:"#999999","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},g).textContent=d.date+(d.outlook?" · Ausblick":"");
     }
     g.addEventListener("mouseenter",function(){
       showTip(logoHtml(d.logo)+'<div class="t-date">'+d.date+(d.outlook?' · Ausblick':'')+'</div><div class="t-title">'+d.title+'</div><div class="t-text">'+d.text+'</div>',px,cy);
@@ -213,21 +221,24 @@
   });
 
   // ---------- Funding-Meilensteine: lange vertikale Linien am Chart ----------
+  // Zwei Ebenen: erst alle Linien/Marker, dann alle Labels (labels-on-top) -> keine Linie schneidet ein Label.
   var fundsG=el("g",{id:"gFunds"});
+  var fundGeomG=el("g",{},fundsG);
+  var fundLabG=el("g",{},fundsG);
   funds.forEach(function(f){
     var px=x(f.i), py=fundLanes[f.lane];
     var lineTop=y(cum[f.i])+6;   // von der Performance-Linie ...
-    var g=el("g",{"class":"fund-marker"},fundsG);
+    var g=el("g",{"class":"fund-marker"},fundGeomG);
     el("line",{x1:px,y1:lineTop,x2:px,y2:py-9,stroke:"#c1c1c4","stroke-width":1.5},g); // ... bis zum Label
     el("circle",{cx:px,cy:lineTop-6,r:3,fill:"#fff",stroke:"#2f3030","stroke-width":1.2},g);
     el("rect",{x:px-5,y:py-5,width:10,height:10,fill:"#fff",stroke:"#2f3030","stroke-width":1.5,transform:"rotate(45 "+px+" "+py+")"},g);
     var anchor=f.i>20?"end":"start";
     var lx=f.i>20?px-12:px+12;
-    el("text",{x:lx,y:py+4,"text-anchor":anchor,"font-size":"12","font-weight":"500",fill:"#2F3030"},g).textContent=f.title;
-    g.addEventListener("mouseenter",function(){
-      showTip(logoHtml(f.logo)+'<div class="t-date">'+f.date+'</div><div class="t-title">'+f.title+'</div><div class="t-text">'+f.text+'</div>',px,py-40);
-    });
-    g.addEventListener("mouseleave",hideTip);
+    var lab=el("text",{x:lx,y:py+4,"text-anchor":anchor,"font-size":"12","font-weight":"500",fill:"#2F3030","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},fundLabG);
+    lab.textContent=f.title;
+    var enter=function(){ showTip(logoHtml(f.logo)+'<div class="t-date">'+f.date+'</div><div class="t-title">'+f.title+'</div><div class="t-text">'+f.text+'</div>',px,py-40); };
+    g.addEventListener("mouseenter",enter); g.addEventListener("mouseleave",hideTip);
+    lab.addEventListener("mouseenter",enter); lab.addEventListener("mouseleave",hideTip);
   });
 
   // ---------- Hover auf der Linie: Crosshair + Werte ----------
@@ -247,12 +258,14 @@
     var html='<div class="t-date">'+months[i]+'</div>'+
       '<div class="row"><span>Seit Auflage</span><span>'+pct(cum[i])+'</span></div>'+
       (mret[i]!==null?'<div class="row"><span>Monatsrendite</span><span>'+pct(mret[i])+'</span></div>':'')+
-      '<hr><div class="row"><span>NAV</span><span>'+fmt(nav[i],4)+'</span></div>';
+      '<hr><div class="row"><span>NAV</span><span>'+fmt(nav[i],4)+'\u202F€</span></div>';
     showTip(html,px,py);
   });
   overlay.addEventListener("mouseleave",function(){cross.setAttribute("opacity",0);hideTip();});
   // Marker über dem Overlay halten
   svg.appendChild(fundsG);svg.appendChild(dealsG);
+  // X-Achsen-Labels als oberste Ebene -> Meilenstein-Leader-Linien schneiden sie nicht mehr
+  svg.appendChild(topLab);
 
   // ---------- Toggles ----------
   function bindToggle(btnId,groupId){

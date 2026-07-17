@@ -43,8 +43,8 @@
      text:"LIQID Private Equity NXT startet als einer der ersten ELTIFs in der DACH-Region – über 1.000 Kunden sichern sich direkt zum Start den Zugang zu Private Equity ab 10.000 Euro."},
     {i:3,  date:"September 2024",title:"100\u202FMio.\u202F€ Fondsvolumen", lane:1,
      text:"Das NXT Volumen überschreitet die Marke von 100 Millionen Euro."},
-    {i:5,  date:"November 2024", title:"Erster positiver NAV", lane:2,
-     text:"Trotz Aufbauphase und US-Dollar-Schwäche zeigt sich die erste Wertschöpfung in Form des ersten positiven NAVs."},
+    {i:5,  date:"November 2024", title:"Erster positiver Fondspreis", lane:2,
+     text:"Trotz Aufbauphase und US-Dollar-Schwäche zeigt sich die erste Wertschöpfung in Form des ersten positiven Fondspreises."},
     {i:11, date:"Mai 2025",      title:"200\u202FMio.\u202F€ Fondsvolumen", lane:0,
      text:"Das NXT Volumen überschreitet die Marke von 200 Millionen Euro."},
     {i:17, date:"November 2025", title:"Scope Award", logo:"scope", lane:1,
@@ -146,26 +146,30 @@
   var wrap=document.getElementById("chartWrap");
   function showTip(html,px,py){
     tooltip.innerHTML=html;tooltip.classList.add("show");
-    // Tooltip liegt absolut im .chart-wrap und scrollt mit dem Chart-Inhalt mit (Position in Inhaltskoordinaten).
-    // Skalierung nach dem gerenderten SVG (Höhen-Skalierung auf Mobile). Clamping gegen das SICHTBARE
-    // Fenster (Wrapper evtl. horizontal gescrollt) -> Tooltip bleibt neben dem Marker und im Bild.
+    // Tooltip liegt jetzt in .chart-stage (NICHT im clippenden/scrollenden #chartWrap) -> unten nie abgeschnitten.
+    // Sichtbare Markerposition = Inhalts-x minus horizontaler Scroll des Wrappers; Koordinaten relativ zur Stage.
     var sr=svg.getBoundingClientRect(),scale=sr.width/W;
     var mx=px*scale,my=py*scale;
     tooltip.style.left="0";tooltip.style.top="0";tooltip.style.width="";
     var tw=tooltip.offsetWidth;
-    tooltip.style.width=tw+"px";   // Breite fixieren: großer left-Offset im Scroll-Container darf sie nicht quetschen
+    tooltip.style.width=tw+"px";
     var th=tooltip.offsetHeight;
-    var vL=wrap.scrollLeft,vR=vL+wrap.clientWidth,vH=wrap.clientHeight;
-    var tx=mx+14;
-    if(tx+tw>vR-8)tx=mx-tw-14;   // links vom Marker, wenn rechts kein Platz
-    if(tx+tw>vR-8)tx=vR-tw-8;    // im sichtbaren rechten Rand halten
-    if(tx<vL+8)tx=vL+8;          // im sichtbaren linken Rand halten
-    var ty=my-10;
-    if(ty+th>vH-12)ty=vH-th-12;
-    if(ty<8)ty=8;
+    var boxW=wrap.clientWidth,boxH=wrap.clientHeight;         // sichtbare Chart-Box
+    var markerX=mx-wrap.scrollLeft,markerY=my;                // sichtbare Position im Wrapper/Stage
+    var tx=markerX+14;
+    if(tx+tw>boxW-8)tx=markerX-tw-14;   // links vom Marker, wenn rechts kein Platz
+    if(tx+tw>boxW-8)tx=boxW-tw-8;       // im sichtbaren rechten Rand halten
+    if(tx<8)tx=8;                       // im sichtbaren linken Rand halten
+    var ty=markerY-10;
+    if(ty+th>boxH-8)ty=markerY-th-14;   // UEBER den Marker klappen, wenn unten kein Platz
+    if(ty<8)ty=8;                       // oben im Bild halten
     tooltip.style.left=tx+"px";tooltip.style.top=ty+"px";
   }
   function hideTip(){tooltip.classList.remove("show");}
+  // Rechter Scroll-Fade (nur Mobile): sichtbar, solange rechts noch Chart folgt; am rechten Ende ausblenden.
+  var chartFade=document.getElementById("chartFade");
+  function updateFade(){ if(!chartFade)return; var canScroll=wrap.scrollWidth-wrap.clientWidth>1; var atEnd=wrap.scrollLeft+wrap.clientWidth>=wrap.scrollWidth-1; chartFade.classList.toggle("at-end",!canScroll||atEnd); }
+  wrap.addEventListener("scroll",updateFade); window.addEventListener("resize",updateFade);
 
   // ---------- Deal-Marker: Logo-Chips nah am Chart ----------
   var dealsG=el("g",{id:"gDeals"});
@@ -214,10 +218,12 @@
       el("text",{x:ax,y:cy-1,"text-anchor":anch,"font-size":"12.5","font-weight":"600",fill:"#2f3030","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},g).textContent=name;
       el("text",{x:ax,y:cy+13,"text-anchor":anch,"font-size":"10.5",fill:"#999999","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},g).textContent=d.date+(d.outlook?" · Ausblick":"");
     }
-    g.addEventListener("mouseenter",function(){
-      showTip(logoHtml(d.logo)+'<div class="t-date">'+d.date+(d.outlook?' · Ausblick':'')+'</div><div class="t-title">'+d.title+'</div><div class="t-text">'+d.text+'</div>',px,cy);
-    });
+    // Vergrößertes, transparentes Trefferfeld (~44px) als oberste Ebene im Marker -> gewinnt Taps (auch über Meilensteinen).
+    el("circle",{cx:px,cy:cy,r:22,fill:"transparent","class":"hit"},g);
+    var showDeal=function(){ showTip(logoHtml(d.logo)+'<div class="t-date">'+d.date+(d.outlook?' · Ausblick':'')+'</div><div class="t-title">'+d.title+'</div><div class="t-text">'+d.text+'</div>',px,cy); };
+    g.addEventListener("mouseenter",showDeal);                                  // Desktop-Hover unverändert
     g.addEventListener("mouseleave",hideTip);
+    g.addEventListener("click",function(ev){ ev.stopPropagation(); showDeal(); }); // Tap: sofort, kein Doppeltap
   });
 
   // ---------- Funding-Meilensteine: lange vertikale Linien am Chart ----------
@@ -236,16 +242,17 @@
     var lx=f.i>20?px-12:px+12;
     var lab=el("text",{x:lx,y:py+4,"text-anchor":anchor,"font-size":"12","font-weight":"500",fill:"#2F3030","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},fundLabG);
     lab.textContent=f.title;
+    el("circle",{cx:px,cy:py,r:22,fill:"transparent","class":"hit"},g);   // Trefferfeld (~44px) auf dem Diamant
     var enter=function(){ showTip(logoHtml(f.logo)+'<div class="t-date">'+f.date+'</div><div class="t-title">'+f.title+'</div><div class="t-text">'+f.text+'</div>',px,py-40); };
     g.addEventListener("mouseenter",enter); g.addEventListener("mouseleave",hideTip);
-    lab.addEventListener("mouseenter",enter); lab.addEventListener("mouseleave",hideTip);
+    g.addEventListener("click",function(ev){ ev.stopPropagation(); enter(); });
   });
 
   // ---------- Hover auf der Linie: Crosshair + Werte ----------
-  var cross=el("g",{opacity:0});
+  var cross=el("g",{opacity:0,"pointer-events":"none"});   // rein visuell -> fängt keine Taps
   var cLine=el("line",{x1:0,y1:T,x2:0,y2:B,stroke:"#2f3030","stroke-width":1,"stroke-dasharray":"3 4",opacity:.45},cross);
   var cDot=el("circle",{r:5,fill:"#fff",stroke:"#2f3030","stroke-width":2.5},cross);
-  var overlay=el("rect",{x:L,y:T,width:R-L,height:B-T,fill:"transparent"});
+  var overlay=el("rect",{x:L,y:T,width:R-L,height:B-T,fill:"transparent","class":"cross-overlay"});
   overlay.addEventListener("mousemove",function(ev){
     var r=svg.getBoundingClientRect();
     var mx=(ev.clientX-r.left)*W/r.width;
@@ -258,7 +265,7 @@
     var html='<div class="t-date">'+months[i]+'</div>'+
       '<div class="row"><span>Seit Auflage</span><span>'+pct(cum[i])+'</span></div>'+
       (mret[i]!==null?'<div class="row"><span>Monatsrendite</span><span>'+pct(mret[i])+'</span></div>':'')+
-      '<hr><div class="row"><span>NAV</span><span>'+fmt(nav[i],4)+'\u202F€</span></div>';
+      '<hr><div class="row"><span>Fondspreis</span><span>'+fmt(nav[i],4)+'\u202F€</span></div>';
     showTip(html,px,py);
   });
   overlay.addEventListener("mouseleave",function(){cross.setAttribute("opacity",0);hideTip();});
@@ -266,6 +273,8 @@
   svg.appendChild(fundsG);svg.appendChild(dealsG);
   // X-Achsen-Labels als oberste Ebene -> Meilenstein-Leader-Linien schneiden sie nicht mehr
   svg.appendChild(topLab);
+  // Tap auf leere Fläche schließt den Tooltip (Marker-Taps stoppen die Propagation und bleiben offen)
+  svg.addEventListener("click",hideTip);
 
   // ---------- Toggles ----------
   function bindToggle(btnId,groupId){

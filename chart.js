@@ -1,17 +1,9 @@
 (function(){
-  // ---------- Daten (CSV: PE NXT Monatsperformance, Share Class E, Stand Mai 2026) ----------
-  var months = ["Jun 24","Jul 24","Aug 24","Sep 24","Okt 24","Nov 24","Dez 24",
-                "Jan 25","Feb 25","Mär 25","Apr 25","Mai 25","Jun 25","Jul 25","Aug 25","Sep 25","Okt 25","Nov 25","Dez 25",
-                "Jan 26","Feb 26","Mär 26","Apr 26","Mai 26"];
-  var cum = [0.0000,-1.0490,-1.5890,-1.8980,-0.7990,0.5220,1.1860,
-             2.0330,2.2680,1.0970,-0.4180,-0.3560,-1.6270,0.5330,0.5840,0.6280,2.0210,2.7060,2.6810,
-             4.1620,5.3900,9.1690,8.8860,13.6870];
-  var nav = [10.0000,9.8951,9.8411,9.8102,9.9201,10.0522,10.1186,
-             10.2033,10.2268,10.1097,9.9582,9.9644,9.8373,10.0533,10.0584,10.0628,10.2021,10.2706,10.2681,
-             10.4162,10.5390,10.9169,10.8886,11.3687];
-  var mret = [null,-1.0490,-0.5457,-0.3140,1.1203,1.3316,0.6606,
-              0.8371,0.2303,-1.1450,-1.4986,0.0623,-1.2755,2.1957,0.0507,0.0437,1.3843,0.6714,-0.0243,
-              1.4423,1.1789,3.5857,-0.2592,4.4092];
+  // ---------- Daten (CSV: PE NXT Monatsperformance, Share Class E, Stand Juni 2026) ----------
+  var months = ["Jun 24","Jul 24","Aug 24","Sep 24","Okt 24","Nov 24","Dez 24","Jan 25","Feb 25","Mär 25","Apr 25","Mai 25","Jun 25","Jul 25","Aug 25","Sep 25","Okt 25","Nov 25","Dez 25","Jan 26","Feb 26","Mär 26","Apr 26","Mai 26","Jun 26"];
+  var cum = [0.0000,-1.0490,-1.5890,-1.8980,-0.7990,0.5220,1.1860,2.0330,2.2680,1.0970,-0.4180,-0.3560,-1.6270,0.5330,0.5840,0.6280,2.0210,2.7060,2.6810,4.1620,5.3900,9.1690,8.8860,13.6870,15.6890];
+  var nav = [10.0000,9.8951,9.8411,9.8102,9.9201,10.0522,10.1186,10.2033,10.2268,10.1097,9.9582,9.9644,9.8373,10.0533,10.0584,10.0628,10.2021,10.2706,10.2681,10.4162,10.5390,10.9169,10.8886,11.3687,11.5689];
+  var mret = [null,-1.0490,-0.5457,-0.3140,1.1203,1.3316,0.6606,0.8371,0.2303,-1.1450,-1.4986,0.0623,-1.2755,2.1957,0.0507,0.0437,1.3843,0.6714,-0.0243,1.4423,1.1789,3.5857,-0.2592,4.4092,1.761];
 
   // Deals – immer nah am Chart (Logo-Chips direkt an der Performance-Linie)
   var deals = [
@@ -43,13 +35,13 @@
      text:"LIQID Private Equity NXT startet als einer der ersten ELTIFs in der DACH-Region – über 1.000 Kunden sichern sich direkt zum Start den Zugang zu Private Equity ab 10.000 Euro."},
     {i:3,  date:"September 2024",title:"100\u202FMio.\u202F€ Fondsvolumen", lane:1,
      text:"Das NXT Volumen überschreitet die Marke von 100 Millionen Euro."},
-    {i:5,  date:"November 2024", title:"Erster positiver Fondspreis", lane:2,
-     text:"Trotz Aufbauphase und US-Dollar-Schwäche zeigt sich die erste Wertschöpfung in Form des ersten positiven Fondspreises."},
+    {i:5,  date:"November 2024", title:"Fondspreis erstmals über Ausgabepreis", lane:2,
+     text:"Der Fondspreis notiert im November 2024 erstmals über dem Ausgabepreis von 10,00 €."},
     {i:11, date:"Mai 2025",      title:"200\u202FMio.\u202F€ Fondsvolumen", lane:0,
      text:"Das NXT Volumen überschreitet die Marke von 200 Millionen Euro."},
     {i:17, date:"November 2025", title:"Scope Award", logo:"scope", lane:1,
      text:"Die Rating-Agentur Scope zeichnet LIQID Private Equity NXT mit dem Scope Innovation Award 2026 aus."},
-    {i:19, date:"Januar 2026",   title:"Aufbauphase abgeschlossen", lane:0,
+    {i:24, date:"Juni 2026",     title:"Aufbauphase abgeschlossen", lane:0,
      text:"Aufbauphase frühzeitig beendet – das Portfolio ist nahezu voll investiert."},
     {i:23, date:"Mai 2026",      title:"300\u202FMio.\u202F€ Fondsvolumen", lane:2,
      text:"Das NXT Volumen überschreitet die Marke von 300 Millionen Euro."}
@@ -87,6 +79,7 @@
   function logoHtml(key){return key&&LOGOS[key]?'<div class="t-logo tl-'+key+'">'+LOGOS[key]+'</div>':'';}
 
   // ---------- Geometrie ----------
+  var LAST=cum.length-1;                          // letzter realer Datenpunkt (Juni 2026)
   var W=1200,H=660,L=58,R=1140,T=118,B=468;      // Plotbereich Linie (volle Breite, ausgewogene Ränder)
   var IPO_X=1176;                                 // Outlook-Marker: Chip knapp innerhalb der rechten Kante
   var yMin=-3.5,yMax=15.5;
@@ -96,7 +89,7 @@
   function x(i){return L+(R-L)*i/(months.length-1);}
   function y(v){return T+(B-T)*(yMax-v)/(yMax-yMin);}
   function fmt(v,d){return v.toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d});}
-  function pct(v){var s=fmt(v,2).replace(/^([+\-\u2212])/,"$1\u202F");return (v>0?"+\u202F":"")+s+"\u202F%";}
+  function pct(v){var s=fmt(v,1).replace(/^([+\-\u2212])/,"$1\u202F");return (v>0?"+\u202F":"")+s+"\u202F%";}
 
   var svgNS="http://www.w3.org/2000/svg";
   var svg=document.getElementById("chart");
@@ -118,7 +111,7 @@
   // X-Labels (quartalsweise + letzter Monat). Monats-Labels in eine oberste Ebene (topLab),
   // damit die vertikalen Meilenstein-Leader-Linien sie nicht durchschneiden. Halo (Stroke = Bandfarbe) maskiert zusätzlich.
   var topLab=el("g",{});
-  [0,3,6,9,12,15,18,21,23].forEach(function(i){
+  [0,3,6,9,12,15,18,21,24].forEach(function(i){
     el("text",{x:x(i),y:axisY,"text-anchor":"middle","font-size":"12",fill:"#787878","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},topLab).textContent=months[i];
     el("line",{x1:x(i),y1:B,x2:x(i),y2:B+6,stroke:"#c1c1c4","stroke-width":1});
   });
@@ -127,7 +120,7 @@
   // Fläche + Linie
   var lineD=cum.map(function(v,i){return (i?"L":"M")+fmt2(x(i))+" "+fmt2(y(v));}).join(" ");
   function fmt2(n){return Math.round(n*100)/100;}
-  el("path",{d:lineD+" L"+fmt2(x(23))+" "+y(0)+" L"+L+" "+y(0)+" Z",fill:"url(#areaGrad)",stroke:"none"});
+  el("path",{d:lineD+" L"+fmt2(x(LAST))+" "+y(0)+" L"+L+" "+y(0)+" Z",fill:"url(#areaGrad)",stroke:"none"});
   var line=el("path",{d:lineD,fill:"none",stroke:"#232326","stroke-width":3,"stroke-linejoin":"round","stroke-linecap":"round"});
 
   // Linien-Animation
@@ -139,7 +132,7 @@
   }catch(e){}
 
   // Endpunkt-Dot auf der Linie (Endwert-Badge "+13,69 %" entfernt)
-  var ex=x(23),ey=y(cum[23]);
+  var ex=x(LAST),ey=y(cum[LAST]);
   el("circle",{cx:ex,cy:ey,r:5.5,fill:"#232326",stroke:"#fff","stroke-width":2});
 
   var tooltip=document.getElementById("tooltip");
@@ -175,17 +168,17 @@
   var dealsG=el("g",{id:"gDeals"});
   // Pass 1: Leader-Linien + Ankerpunkte auf der Linie
   deals.forEach(function(d){
-    var px=d.outlook?IPO_X:x(d.i), py=d.outlook?y(cum[23]):y(cum[d.i]);
+    var px=d.outlook?IPO_X:x(d.i), py=d.outlook?y(cum[LAST]):y(cum[d.i]);
     var cy=py+d.ly;
     if(d.outlook){
-      el("line",{x1:x(23),y1:y(cum[23]),x2:px,y2:py,stroke:"#ef233c","stroke-width":2,"stroke-dasharray":"3 5",opacity:.75},dealsG);
+      el("line",{x1:x(LAST),y1:y(cum[LAST]),x2:px,y2:py,stroke:"#ef233c","stroke-width":2,"stroke-dasharray":"3 5",opacity:.75},dealsG);
     }
     el("line",{x1:px,y1:py,x2:px,y2:cy,stroke:"#c1c1c4","stroke-width":1},dealsG);
     el("circle",{cx:px,cy:py,r:4,fill:"#2f3030",stroke:"#fff","stroke-width":1.5},dealsG);
   });
   // Pass 2: Logo-Chips + Labels
   deals.forEach(function(d,idx){
-    var px=d.outlook?IPO_X:x(d.i), py=d.outlook?y(cum[23]):y(cum[d.i]);
+    var px=d.outlook?IPO_X:x(d.i), py=d.outlook?y(cum[LAST]):y(cum[d.i]);
     var cy=py+d.ly;
     var g=el("g",{"class":"deal-marker"},dealsG);
     var clip=el("clipPath",{id:"dclip"+idx},defs);
@@ -265,7 +258,7 @@
     var html='<div class="t-date">'+months[i]+'</div>'+
       '<div class="row"><span>Seit Auflage</span><span>'+pct(cum[i])+'</span></div>'+
       (mret[i]!==null?'<div class="row"><span>Monatsrendite</span><span>'+pct(mret[i])+'</span></div>':'')+
-      '<hr><div class="row"><span>Fondspreis</span><span>'+fmt(nav[i],4)+'\u202F€</span></div>';
+      '<hr><div class="row"><span>Fondspreis</span><span>'+fmt(nav[i],1)+'\u202F€</span></div>';
     showTip(html,px,py);
   });
   overlay.addEventListener("mouseleave",function(){cross.setAttribute("opacity",0);hideTip();});

@@ -83,8 +83,9 @@
   var W=1200,H=660,L=58,R=1140,T=118,B=468;      // Plotbereich Linie (volle Breite, ausgewogene Ränder)
   var IPO_X=1176;                                 // Outlook-Marker: Chip knapp innerhalb der rechten Kante
   var yMin=-3.5,yMax=15.5;
-  var fundLanes=[548,580,612];                    // Meilenstein-Lanes
-  var axisY=498;                                  // X-Achsen-Labels
+  var fundLanes=[504,538,572];                    // Meilenstein-Lanes (direkt unter dem Plot, ÜBER der Datumsachse)
+  var axisY=634;                                  // X-Achsen-Monatslabels (ganz unten)
+  var axisLineY=608;                              // horizontale Achsenlinie + Tick-Oberkante (ganz unten, unter den Meilensteinen)
 
   function x(i){return L+(R-L)*i/(months.length-1);}
   function y(v){return T+(B-T)*(yMax-v)/(yMax-yMin);}
@@ -106,16 +107,16 @@
   el("stop",{offset:"100%","stop-color":"#232326","stop-opacity":"0"},grad);
 
   // Editorial: keine Gridlines, keine Y-Achse – nur eine ultra-leichte Nulllinie
-  el("line",{x1:L,y1:y(0),x2:R,y2:y(0),stroke:"#c1c1c4","stroke-width":1});
+  el("line",{x1:L,y1:y(0),x2:R,y2:y(0),stroke:"#c1c1c4","stroke-width":1,"stroke-dasharray":"2 4"});
 
   // X-Labels (quartalsweise + letzter Monat). Monats-Labels in eine oberste Ebene (topLab),
   // damit die vertikalen Meilenstein-Leader-Linien sie nicht durchschneiden. Halo (Stroke = Bandfarbe) maskiert zusätzlich.
   var topLab=el("g",{});
   [0,3,6,9,12,15,18,21,24].forEach(function(i){
     el("text",{x:x(i),y:axisY,"text-anchor":"middle","font-size":"12",fill:"#787878","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},topLab).textContent=months[i];
-    el("line",{x1:x(i),y1:B,x2:x(i),y2:B+6,stroke:"#c1c1c4","stroke-width":1});
+    el("line",{x1:x(i),y1:axisLineY,x2:x(i),y2:axisLineY+6,stroke:"#c1c1c4","stroke-width":1});
   });
-  el("line",{x1:L,y1:B,x2:R,y2:B,stroke:"#c1c1c4","stroke-width":1});
+  el("line",{x1:L,y1:axisLineY,x2:R,y2:axisLineY,stroke:"#c1c1c4","stroke-width":1});
 
   // Fläche + Linie
   var lineD=cum.map(function(v,i){return (i?"L":"M")+fmt2(x(i))+" "+fmt2(y(v));}).join(" ");
@@ -133,7 +134,7 @@
 
   // Endpunkt-Dot auf der Linie (Endwert-Badge "+13,69 %" entfernt)
   var ex=x(LAST),ey=y(cum[LAST]);
-  el("circle",{cx:ex,cy:ey,r:5.5,fill:"#232326",stroke:"#fff","stroke-width":2});
+  el("circle",{cx:ex,cy:ey,r:5.5,fill:"#fff",stroke:"#2f3030","stroke-width":1.5});
 
   var tooltip=document.getElementById("tooltip");
   var wrap=document.getElementById("chartWrap");
@@ -174,7 +175,7 @@
       el("line",{x1:x(LAST),y1:y(cum[LAST]),x2:px,y2:py,stroke:"#ef233c","stroke-width":2,"stroke-dasharray":"3 5",opacity:.75},dealsG);
     }
     el("line",{x1:px,y1:py,x2:px,y2:cy,stroke:"#c1c1c4","stroke-width":1},dealsG);
-    el("circle",{cx:px,cy:py,r:4,fill:"#2f3030",stroke:"#fff","stroke-width":1.5},dealsG);
+    el("circle",{cx:px,cy:py,r:4,fill:"#fff",stroke:"#2f3030","stroke-width":1.5},dealsG);
   });
   // Pass 2: Logo-Chips + Labels
   deals.forEach(function(d,idx){

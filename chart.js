@@ -1,6 +1,10 @@
 (function(){
   // ---------- Daten (CSV: PE NXT Monatsperformance, Share Class E, Stand Juni 2026) ----------
-  var months = ["Jun 24","Jul 24","Aug 24","Sep 24","Okt 24","Nov 24","Dez 24","Jan 25","Feb 25","Mär 25","Apr 25","Mai 25","Jun 25","Jul 25","Aug 25","Sep 25","Okt 25","Nov 25","Dez 25","Jan 26","Feb 26","Mär 26","Apr 26","Mai 26","Jun 26"];
+  var months = ["Jun 24","Jul 24","Aug 24","Sep 24","Okt 24","Nov 24","Dez 24","Jan 25","Feb 25","Mär 25","Apr 25","Mai 25","Jun 25","Jul 25","Aug 25","Sep 25","Okt 25","Nov 25","Dez 25","Jan 26","Feb 26","Mär 26","Apr 26","Mai 26","Jun 26","Jul 26"];
+  // "Jul 26" ist ein bewusst LEERER Achsen-Slot (Platzhalter bis zum Juli-NAV): kein cum/nav-Wert.
+  // Dadurch spannt die x-Skala einen Slot weiter, aber Linie, Flaeche und Endpunkt-Dot enden weiterhin
+  // bei Juni 2026 (Index LAST) - der Juni->Juli-Abschnitt bleibt leer. Sobald der echte Juli-Wert
+  // vorliegt, wird daraus ein normaler Datenpunkt und die Linie verlaengert sich automatisch.
   var cum = [0.0000,-1.0490,-1.5890,-1.8980,-0.7990,0.5220,1.1860,2.0330,2.2680,1.0970,-0.4180,-0.3560,-1.6270,0.5330,0.5840,0.6280,2.0210,2.7060,2.6810,4.1620,5.3900,9.1690,8.8860,13.6870,15.6890];
   var nav = [10.0000,9.8951,9.8411,9.8102,9.9201,10.0522,10.1186,10.2033,10.2268,10.1097,9.9582,9.9644,9.8373,10.0533,10.0584,10.0628,10.2021,10.2706,10.2681,10.4162,10.5390,10.9169,10.8886,11.3687,11.5689];
   var mret = [null,-1.0490,-0.5457,-0.3140,1.1203,1.3316,0.6606,0.8371,0.2303,-1.1450,-1.4986,0.0623,-1.2755,2.1957,0.0507,0.0437,1.3843,0.6714,-0.0243,1.4423,1.1789,3.5857,-0.2592,4.4092,1.761];
@@ -25,14 +29,14 @@
      text:"Erster Exit im Portfolio: Kohlberg verkauft den amerikanischen Datenmanager Entrust."},
     {i:22, date:"April 2026",   title:"Vinted", logo:"vinted", domain:"vinted.com", ly:100, side:"left",
      text:"Growth Investment mit EQT: Vinted ist der größte C2C-Marktplatz für Second-Hand-Mode und -Artikel in Europa."},
-    {i:23, date:"Juli 2026",    title:"Erster Börsengang: Bending Spoons", logo:"bendingspoons", domain:"bendingspoons.com", ly:-60, side:"left", outlook:true,
-     text:"Erster Börsengang im Portfolio: Der italienische App-Entwickler hinter Komoot & Co. geht an die NASDAQ."}
+    {i:25, date:"Juli 2026",    title:"Erster Börsengang: Bending Spoons", logo:"bendingspoons", domain:"bendingspoons.com", ly:-60, side:"left",
+     text:"Erster Börsengang im Portfolio: Der italienische App-Entwickler hinter Komoot & Co. ist an der NASDAQ notiert."}
   ];
 
   // Funding- & Produkt-Meilensteine – lange vertikale Linien am Chart
   var funds = [
     {i:0,  date:"Juni 2024",     title:"NXT startet mit 1.000 Kunden", lane:0,
-     text:"LIQID Private Equity NXT startet als einer der ersten ELTIFs in der DACH-Region – über 1.000 Kunden sichern sich direkt zum Start den Zugang zu Private Equity ab 10.000 Euro."},
+     text:"LIQID Private Equity NXT startet als einer der ersten ELTIFs in der DACH-Region – über 1.000 Kunden sichern sich direkt zum Start den Zugang zu Private Equity."},
     {i:3,  date:"September 2024",title:"100\u202FMio.\u202F€ Fondsvolumen", lane:1,
      text:"Das NXT Volumen überschreitet die Marke von 100 Millionen Euro."},
     {i:5,  date:"November 2024", title:"Fondspreis erstmals über Ausgabepreis", lane:2,
@@ -41,7 +45,7 @@
      text:"Das NXT Volumen überschreitet die Marke von 200 Millionen Euro."},
     {i:17, date:"November 2025", title:"Scope Award", logo:"scope", lane:1,
      text:"Die Rating-Agentur Scope zeichnet LIQID Private Equity NXT mit dem Scope Innovation Award 2026 aus."},
-    {i:24, date:"Juni 2026",     title:"Aufbauphase abgeschlossen", lane:0,
+    {i:13, date:"Juli 2025",     title:"Aufbauphase abgeschlossen", lane:2,
      text:"Aufbauphase frühzeitig beendet – das Portfolio ist nahezu voll investiert."},
     {i:23, date:"Mai 2026",      title:"300\u202FMio.\u202F€ Fondsvolumen", lane:2,
      text:"Das NXT Volumen überschreitet die Marke von 300 Millionen Euro."}
@@ -81,7 +85,6 @@
   // ---------- Geometrie ----------
   var LAST=cum.length-1;                          // letzter realer Datenpunkt (Juni 2026)
   var W=1200,H=660,L=58,R=1140,T=118,B=468;      // Plotbereich Linie (volle Breite, ausgewogene Ränder)
-  var IPO_X=1176;                                 // Outlook-Marker: Chip knapp innerhalb der rechten Kante
   var yMin=-3.5,yMax=15.5;
   var fundLanes=[504,538,572];                    // Meilenstein-Lanes (direkt unter dem Plot, ÜBER der Datumsachse)
   var axisY=634;                                  // X-Achsen-Monatslabels (ganz unten)
@@ -112,7 +115,7 @@
   // X-Labels (quartalsweise + letzter Monat). Monats-Labels in eine oberste Ebene (topLab),
   // damit die vertikalen Meilenstein-Leader-Linien sie nicht durchschneiden. Halo (Stroke = Bandfarbe) maskiert zusätzlich.
   var topLab=el("g",{});
-  [0,3,6,9,12,15,18,21,24].forEach(function(i){
+  [0,3,6,9,12,15,18,21,24,25].forEach(function(i){
     el("text",{x:x(i),y:axisY,"text-anchor":"middle","font-size":"12",fill:"#787878","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},topLab).textContent=months[i];
     el("line",{x1:x(i),y1:axisLineY,x2:x(i),y2:axisLineY+6,stroke:"#c1c1c4","stroke-width":1});
   });
@@ -134,6 +137,10 @@
 
   // Endpunkt-Dot auf der Linie (Endwert-Badge "+13,69 %" entfernt)
   var ex=x(LAST),ey=y(cum[LAST]);
+  // Dezenter gepunkteter grauer Verbinder: Juni-Endpunkt -> Bending-Spoons-Anker auf dem (leeren) Juli-Slot.
+  // Rein visuell, wie die Nulllinie gepunktet (grau, KEIN rotes Ausblick-Design); wird VOR den Punkten gezeichnet,
+  // damit End-/Ankerpunkt und Chip darueber liegen. Kein cum/nav-Wert -> Linie/Flaeche enden weiterhin bei Juni.
+  el("line",{x1:ex,y1:ey,x2:x(25),y2:ey,stroke:"#c1c1c4","stroke-width":1.5,"stroke-dasharray":"2 4"});
   el("circle",{cx:ex,cy:ey,r:5.5,fill:"#fff",stroke:"#2f3030","stroke-width":1.5});
 
   var tooltip=document.getElementById("tooltip");
@@ -164,22 +171,21 @@
   var chartFade=document.getElementById("chartFade");
   function updateFade(){ if(!chartFade)return; var canScroll=wrap.scrollWidth-wrap.clientWidth>1; var atEnd=wrap.scrollLeft+wrap.clientWidth>=wrap.scrollWidth-1; chartFade.classList.toggle("at-end",!canScroll||atEnd); }
   wrap.addEventListener("scroll",updateFade); window.addEventListener("resize",updateFade);
+  var _quelleLink=document.getElementById("quelleLink");
+  if(_quelleLink){ _quelleLink.addEventListener("click",function(ev){ ev.preventDefault(); var t=document.getElementById("quelle-nxt"); if(t) t.scrollIntoView({behavior:"smooth"}); }); }
 
   // ---------- Deal-Marker: Logo-Chips nah am Chart ----------
   var dealsG=el("g",{id:"gDeals"});
   // Pass 1: Leader-Linien + Ankerpunkte auf der Linie
   deals.forEach(function(d){
-    var px=d.outlook?IPO_X:x(d.i), py=d.outlook?y(cum[LAST]):y(cum[d.i]);
+    var px=x(d.i), py=y(cum[d.i]!=null?cum[d.i]:cum[LAST]);
     var cy=py+d.ly;
-    if(d.outlook){
-      el("line",{x1:x(LAST),y1:y(cum[LAST]),x2:px,y2:py,stroke:"#ef233c","stroke-width":2,"stroke-dasharray":"3 5",opacity:.75},dealsG);
-    }
     el("line",{x1:px,y1:py,x2:px,y2:cy,stroke:"#c1c1c4","stroke-width":1},dealsG);
     el("circle",{cx:px,cy:py,r:4,fill:"#fff",stroke:"#2f3030","stroke-width":1.5},dealsG);
   });
   // Pass 2: Logo-Chips + Labels
   deals.forEach(function(d,idx){
-    var px=d.outlook?IPO_X:x(d.i), py=d.outlook?y(cum[LAST]):y(cum[d.i]);
+    var px=x(d.i), py=y(cum[d.i]!=null?cum[d.i]:cum[LAST]);
     var cy=py+d.ly;
     var g=el("g",{"class":"deal-marker"},dealsG);
     var clip=el("clipPath",{id:"dclip"+idx},defs);
@@ -210,11 +216,11 @@
       var ax=d.side==="right"?px+21:px-21;
       var anch=d.side==="right"?"start":"end";
       el("text",{x:ax,y:cy-1,"text-anchor":anch,"font-size":"12.5","font-weight":"600",fill:"#2f3030","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},g).textContent=name;
-      el("text",{x:ax,y:cy+13,"text-anchor":anch,"font-size":"10.5",fill:"#999999","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},g).textContent=d.date+(d.outlook?" · Ausblick":"");
+      el("text",{x:ax,y:cy+13,"text-anchor":anch,"font-size":"10.5",fill:"#999999","paint-order":"stroke",stroke:"#f5f2ef","stroke-width":"4","stroke-linejoin":"round","stroke-linecap":"round"},g).textContent=d.date;
     }
     // Vergrößertes, transparentes Trefferfeld (~44px) als oberste Ebene im Marker -> gewinnt Taps (auch über Meilensteinen).
     el("circle",{cx:px,cy:cy,r:22,fill:"transparent","class":"hit"},g);
-    var showDeal=function(){ showTip(logoHtml(d.logo)+'<div class="t-date">'+d.date+(d.outlook?' · Ausblick':'')+'</div><div class="t-title">'+d.title+'</div><div class="t-text">'+d.text+'</div>',px,cy); };
+    var showDeal=function(){ showTip(logoHtml(d.logo)+'<div class="t-date">'+d.date+'</div><div class="t-title">'+d.title+'</div><div class="t-text">'+d.text+'</div>',px,cy); };
     g.addEventListener("mouseenter",showDeal);                                  // Desktop-Hover unverändert
     g.addEventListener("mouseleave",hideTip);
     g.addEventListener("click",function(ev){ ev.stopPropagation(); showDeal(); }); // Tap: sofort, kein Doppeltap
@@ -251,7 +257,7 @@
     var r=svg.getBoundingClientRect();
     var mx=(ev.clientX-r.left)*W/r.width;
     var i=Math.round((mx-L)/(R-L)*(months.length-1));
-    i=Math.max(0,Math.min(months.length-1,i));
+    i=Math.max(0,Math.min(LAST,i));
     var px=x(i),py=y(cum[i]);
     cross.setAttribute("opacity",1);
     cLine.setAttribute("x1",px);cLine.setAttribute("x2",px);

@@ -171,8 +171,6 @@
   var chartFade=document.getElementById("chartFade");
   function updateFade(){ if(!chartFade)return; var canScroll=wrap.scrollWidth-wrap.clientWidth>1; var atEnd=wrap.scrollLeft+wrap.clientWidth>=wrap.scrollWidth-1; chartFade.classList.toggle("at-end",!canScroll||atEnd); }
   wrap.addEventListener("scroll",updateFade); window.addEventListener("resize",updateFade);
-  var _quelleLink=document.getElementById("quelleLink");
-  if(_quelleLink){ _quelleLink.addEventListener("click",function(ev){ ev.preventDefault(); var t=document.getElementById("quelle-nxt"); if(t) t.scrollIntoView({behavior:"smooth"}); }); }
 
   // ---------- Deal-Marker: Logo-Chips nah am Chart ----------
   var dealsG=el("g",{id:"gDeals"});
